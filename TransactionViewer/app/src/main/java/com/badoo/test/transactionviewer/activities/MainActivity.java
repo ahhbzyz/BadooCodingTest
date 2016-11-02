@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
         progress.setMessage("Calculating transactions...");
         progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progress.setIndeterminate(true);
-        progress.show();
 
         // Do in background
         new CalculateTransactions().execute();
@@ -120,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String result) {
-
+	    // Show calculating result	
             Toast toast = Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT);
             toast.show();
 
