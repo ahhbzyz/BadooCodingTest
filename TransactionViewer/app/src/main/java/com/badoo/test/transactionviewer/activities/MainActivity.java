@@ -9,6 +9,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.badoo.test.transactionviewer.R;
 import com.badoo.test.transactionviewer.algorithm.BFS;
@@ -35,44 +36,55 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setNavigationIcon(R.mipmap.ic_launcher);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Products");
+
+        // Initial progress dialog
         progress = new ProgressDialog(this);
         progress.setMessage("Calculating transactions...");
         progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progress.setIndeterminate(true);
         progress.show();
-        new CalculateTransactions().execute();
 
+        // Do in background
+        new CalculateTransactions().execute();
     }
 
     private class CalculateTransactions extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... params) {
+
+            Graph graph = new Graph();
+
             try {
                 /** Create currency exchange graph **/
                 String ratesJSON = Util.LoadJsonFile("rates.json", getApplicationContext());
                 if (ratesJSON == null) {
-                    return "failed";
+                    return "rates.json is empty!";
                 }
                 JSONArray ratesArray = new JSONArray(ratesJSON);
-                Graph graph = new Graph();
-
                 for (int i = 0; i < ratesArray.length(); i++) {
                     String from = ratesArray.getJSONObject(i).getString("from");
                     String to = ratesArray.getJSONObject(i).getString("to");
                     float rate = (float)ratesArray.getJSONObject(i).getDouble("rate");
                     graph.addEdge(from, to, rate);
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return "JSON Format Error in rates.json!";
+            }
 
+            try {
                 /** Extract all the transaction into a map **/
                 Map<String, List<Transaction>> transMap = new TreeMap<>();
                 String transJSON = Util.LoadJsonFile("transactions.json", getApplicationContext());
                 if (transJSON == null) {
-                    return "failed";
+                    return "transactions.json is empty!";
                 }
                 JSONArray transArray = new JSONArray(transJSON);
 
@@ -100,22 +112,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+                return "JSON Format Error in transaction.json!";
             }
-            return "Successful";
+
+            return "Calculate transactions successfully!";
         }
 
         @Override
         protected void onPostExecute(String result) {
 
-            if (result.equals("failed")) {
-                progress.dismiss();
-                ProgressDialog progressFailed = new ProgressDialog(getApplicationContext());
-                progressFailed.setMessage("Local JSON File Error!");
-                progressFailed.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                progressFailed.setIndeterminate(true);
-                progressFailed.show();
-                return;
-            }
+            Toast toast = Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT);
+            toast.show();
 
             // finishing calculation
             progress.dismiss();

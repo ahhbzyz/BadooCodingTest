@@ -23,31 +23,34 @@ public class TransactionsDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_transactions_details);
 
+        // Toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
 
+        // Set toolbar title
         String transactionSku = bundle.getString("transactionSku");
         getSupportActionBar().setTitle("Transactions for " + transactionSku);
 
+        // Set total value
         float totalAmount = bundle.getFloat("totalAmount");
         TextView textView = (TextView)findViewById(R.id.tv_total);
         textView.setText("Total: £" + Util.round(totalAmount, 2));
 
+        // Get transaction list
         List<Transaction> transactions = bundle.getParcelableArrayList("transactions");
 
+        // Update listview and set adapter
         TransactionsDetailsLvAdapter adapter = new TransactionsDetailsLvAdapter(this, transactions);
-
         ListView transactionsLv = (ListView)findViewById(R.id.lv_transactions_details);
         transactionsLv.setAdapter(adapter);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home)
-        {
+        if (item.getItemId() == android.R.id.home) {
             finish();
         }
         return super.onOptionsItemSelected(item);
